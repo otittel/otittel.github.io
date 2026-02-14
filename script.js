@@ -3,11 +3,6 @@ const previewImg = document.getElementById('previewImg');
 const runBtn = document.getElementById('runBtn');
 const status = document.getElementById('status');
 const fullName = document.getElementById('fullName');
-const fileInput = document.getElementById('fileInput');
-const previewImg = document.getElementById('previewImg');
-const runBtn = document.getElementById('runBtn');
-const status = document.getElementById('status');
-const fullName = document.getElementById('fullName');
 const company = document.getElementById('company');
 const email = document.getElementById('email');
 const phone = document.getElementById('phone');
@@ -20,9 +15,9 @@ const defaultCountry = document.getElementById('defaultCountry');
 
 let currentImage = null;
 
-fileInput.addEventListener('change', e=>{
+fileInput.addEventListener('change', e => {
   const f = e.target.files && e.target.files[0];
-  if(!f) return;
+  if (!f) return;
   const url = URL.createObjectURL(f);
   previewImg.src = url;
   currentImage = f;
@@ -30,31 +25,31 @@ fileInput.addEventListener('change', e=>{
   status.textContent = '';
 });
 
-ocrMode.addEventListener('change', ()=>{
-  if(ocrMode.value === 'ocrspace'){
+ocrMode.addEventListener('change', () => {
+  if (ocrMode.value === 'ocrspace') {
     ocrApiKey.style.display = 'inline-block';
   } else {
     ocrApiKey.style.display = 'none';
   }
 });
 
-runBtn.addEventListener('click', async ()=>{
-  if(!currentImage) return;
+runBtn.addEventListener('click', async () => {
+  if (!currentImage) return;
   runBtn.disabled = true;
   status.textContent = 'Running OCR...';
 
-  try{
+  try {
     let text = '';
-    if(ocrMode.value === 'ocrspace'){
+    if (ocrMode.value === 'ocrspace') {
       text = await cloudOCR(currentImage, ocrApiKey.value || '');
     } else {
-      const {data: {text: t}} = await Tesseract.recognize(currentImage, 'eng', {logger:m=>{ /* console.log(m) */ }});
+      const { data: { text: t } } = await Tesseract.recognize(currentImage, 'eng', { logger: m => { /* console.log(m) */ } });
       text = t;
     }
     status.textContent = 'Parsing text...';
     parseAndFill(text);
     status.textContent = 'Done — review fields and download vCard.';
-  }catch(err){
+  } catch (err) {
     console.error(err);
     status.textContent = 'OCR failed. See console.';
   } finally {
@@ -62,100 +57,24 @@ runBtn.addEventListener('click', async ()=>{
   }
 });
 
-async function cloudOCR(file, apiKey){
-  // Uses OCR.space public API. Requires API key for higher throughput.
+async function cloudOCR(file, apiKey) {
   const form = new FormData();
-  if(apiKey) form.append('apikey', apiKey);
-  else form.append('apikey', 'helloworld'); // limited demo key
-  form.append('language', 'eng');
-  form.append('isOverlayRequired', 'false');
-  form.append('file', file);
-
-  const res = await fetch('https://api.ocr.space/parse/image', {method:'POST', body: form});
-  const j = await res.json();
-  if(j && j.ParsedResults && j.ParsedResults[0] && typeof j.ParsedResults[0].ParsedText === 'string'){
-    return j.ParsedResults[0].ParsedText;
-  }
-  throw new Error('No parsed text from OCR.space');
-}
-
-const fileInput = document.getElementById('fileInput');
-const previewImg = document.getElementById('previewImg');
-const runBtn = document.getElementById('runBtn');
-const status = document.getElementById('status');
-const fullName = document.getElementById('fullName');
-const company = document.getElementById('company');
-const email = document.getElementById('email');
-const phone = document.getElementById('phone');
-const address = document.getElementById('address');
-const downloadBtn = document.getElementById('downloadBtn');
-const ocrMode = document.getElementById('ocrMode');
-const ocrApiKey = document.getElementById('ocrApiKey');
-const phoneFormat = document.getElementById('phoneFormat');
-const defaultCountry = document.getElementById('defaultCountry');
-
-let currentImage = null;
-
-fileInput.addEventListener('change', e=>{
-  const f = e.target.files && e.target.files[0];
-  if(!f) return;
-  const url = URL.createObjectURL(f);
-  previewImg.src = url;
-  currentImage = f;
-  runBtn.disabled = false;
-  status.textContent = '';
-});
-
-ocrMode.addEventListener('change', ()=>{
-  if(ocrMode.value === 'ocrspace'){
-    ocrApiKey.style.display = 'inline-block';
-  } else {
-    ocrApiKey.style.display = 'none';
-  }
-});
-
-runBtn.addEventListener('click', async ()=>{
-  if(!currentImage) return;
-  runBtn.disabled = true;
-  status.textContent = 'Running OCR...';
-
-  try{
-    let text = '';
-    if(ocrMode.value === 'ocrspace'){
-      text = await cloudOCR(currentImage, ocrApiKey.value || '');
-    } else {
-      const {data: {text: t}} = await Tesseract.recognize(currentImage, 'eng', {logger:m=>{ /* console.log(m) */ }});
-      text = t;
-    }
-    status.textContent = 'Parsing text...';
-    parseAndFill(text);
-    status.textContent = 'Done — review fields and download vCard.';
-  }catch(err){
-    console.error(err);
-    status.textContent = 'OCR failed. See console.';
-  } finally {
-    runBtn.disabled = false;
-  }
-});
-
-async function cloudOCR(file, apiKey){
-  const form = new FormData();
-  if(apiKey) form.append('apikey', apiKey);
+  if (apiKey) form.append('apikey', apiKey);
   else form.append('apikey', 'helloworld');
   form.append('language', 'eng');
   form.append('isOverlayRequired', 'false');
   form.append('file', file);
 
-  const res = await fetch('https://api.ocr.space/parse/image', {method:'POST', body: form});
+  const res = await fetch('https://api.ocr.space/parse/image', { method: 'POST', body: form });
   const j = await res.json();
-  if(j && j.ParsedResults && j.ParsedResults[0] && typeof j.ParsedResults[0].ParsedText === 'string'){
+  if (j && j.ParsedResults && j.ParsedResults[0] && typeof j.ParsedResults[0].ParsedText === 'string') {
     return j.ParsedResults[0].ParsedText;
   }
   throw new Error('No parsed text from OCR.space');
 }
 
-function parseAndFill(raw){
-  const lines = raw.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+function parseAndFill(raw) {
+  const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
   const emailRe = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
   const phoneRe = /(?:\+?\d[\d\-().\s]{5,}\d)/;
 
@@ -165,39 +84,39 @@ function parseAndFill(raw){
   let foundCompany = '';
   let foundAddress = [];
 
-  for(const l of lines){
-    if(!foundEmail){
+  for (const l of lines) {
+    if (!foundEmail) {
       const m = l.match(emailRe);
-      if(m) foundEmail = m[0];
+      if (m) foundEmail = m[0];
     }
-    if(!foundPhone){
+    if (!foundPhone) {
       const m = l.match(phoneRe);
-      if(m){
-        const digits = (m[0].match(/\d/g)||[]).length;
-        if(digits>=7) foundPhone = m[0].trim();
+      if (m) {
+        const digits = (m[0].match(/\d/g) || []).length;
+        if (digits >= 7) foundPhone = m[0].trim();
       }
     }
   }
 
-  for(const l of lines){
-    if(l.includes('@')||phoneRe.test(l)) continue;
-    if(/[A-Za-zÄÖÜäöüß]/.test(l) && l.split(' ').length<=4){ foundName = l; break }
+  for (const l of lines) {
+    if (l.includes('@') || phoneRe.test(l)) continue;
+    if (/[A-Za-zÄÖÜäöüß]/.test(l) && l.split(' ').length <= 4) { foundName = l; break }
   }
 
-  const companyKeywords = ['GmbH','LLC','Ltd','AG','Inc','Company','Solutions','Gmbh','KG'];
-  for(const l of lines){
-    for(const kw of companyKeywords){ if(l.includes(kw)) { foundCompany = l; break } }
-    if(foundCompany) break;
+  const companyKeywords = ['GmbH', 'LLC', 'Ltd', 'AG', 'Inc', 'Company', 'Solutions', 'Gmbh', 'KG'];
+  for (const l of lines) {
+    for (const kw of companyKeywords) { if (l.includes(kw)) { foundCompany = l; break } }
+    if (foundCompany) break;
   }
-  if(!foundCompany){
-    for(const l of lines.slice(0,4)){
-      if(l===l.toUpperCase() && /[A-ZÄÖÜ]{2,}/.test(l) && l.length>2){ foundCompany = l; break }
+  if (!foundCompany) {
+    for (const l of lines.slice(0, 4)) {
+      if (l === l.toUpperCase() && /[A-ZÄÖÜ]{2,}/.test(l) && l.length > 2) { foundCompany = l; break }
     }
   }
 
-  const addressKeywords = ['Strasse','Str.','Street','St.','Road','Rd','Lane','Ln','Ave','Avenue','Platz', 'platz'];
-  for(const l of lines){
-    if(/[0-9]{2,}/.test(l) || addressKeywords.some(k=>l.includes(k))){ foundAddress.push(l) }
+  const addressKeywords = ['Strasse', 'Str.', 'Street', 'St.', 'Road', 'Rd', 'Lane', 'Ln', 'Ave', 'Avenue', 'Platz', 'platz'];
+  for (const l of lines) {
+    if (/[0-9]{2,}/.test(l) || addressKeywords.some(k => l.includes(k))) { foundAddress.push(l) }
   }
 
   fullName.value = foundName || '';
@@ -207,67 +126,67 @@ function parseAndFill(raw){
   address.value = foundAddress.join('\n') || '';
 }
 
-function normalizePhoneNumber(raw){
+function normalizePhoneNumber(raw) {
   const outFmt = phoneFormat.value || 'international';
-  const country = (defaultCountry.value||'DE').toUpperCase();
+  const country = (defaultCountry.value || 'DE').toUpperCase();
 
   const parseFn = window.parsePhoneNumberFromString || (window.libphonenumber && window.libphonenumber.parsePhoneNumberFromString) || null;
-  if(parseFn){
-    try{
+  if (parseFn) {
+    try {
       const p = parseFn(raw, country);
-      if(p){
-        if(outFmt === 'international') return p.formatInternational();
-        if(outFmt === 'international00') return p.formatInternational().replace(/^\+/, '00');
+      if (p) {
+        if (outFmt === 'international') return p.formatInternational();
+        if (outFmt === 'international00') return p.formatInternational().replace(/^\+/, '00');
         return p.formatNational();
       }
-    }catch(e){ }
+    } catch (e) { }
   }
 
-  let s = (raw||'').replace(/[()\s.-]/g,'');
-  if(!s) return '';
-  if(s.startsWith('00')) s = '+' + s.slice(2);
-  if(!s.startsWith('+')){
-    const mapping = {DE: '+49'};
-    s = (mapping[country]||'+49') + s.replace(/^0+/,'');
+  let s = (raw || '').replace(/[()\s.-]/g, '');
+  if (!s) return '';
+  if (s.startsWith('00')) s = '+' + s.slice(2);
+  if (!s.startsWith('+')) {
+    const mapping = { DE: '+49' };
+    s = (mapping[country] || '+49') + s.replace(/^0+/, '');
   }
-  if(outFmt === 'international') return s;
-  if(outFmt === 'international00') return s.replace(/^\+/, '00');
+  if (outFmt === 'international') return s;
+  if (outFmt === 'international00') return s.replace(/^\+/, '00');
   return s.replace(/^\+\d+/, '').replace(/^00\d+/, '');
 }
 
-function makeVCard(){
-  const fn = (fullName.value||'').replace(/\n/g,' ');
+function makeVCard() {
+  const fn = (fullName.value || '').replace(/\n/g, ' ');
   const org = company.value || '';
   const mail = email.value || '';
   const telRaw = phone.value || '';
   const tel = normalizePhoneNumber(telRaw);
-  const adrRaw = (address.value||'').replace(/\n/g,';');
+  const adrRaw = (address.value || '').replace(/\n/g, ';');
 
   const lines = [];
   lines.push('BEGIN:VCARD');
   lines.push('VERSION:3.0');
   lines.push(`FN:${escapeVcard(fn)}`);
   const parts = fn.split(' ');
-  const last = parts.length>1?parts.pop():'';
+  const last = parts.length > 1 ? parts.pop() : '';
   const first = parts.join(' ');
   lines.push(`N:${escapeVcard(last)};${escapeVcard(first)};;;`);
-  if(org) lines.push(`ORG:${escapeVcard(org)}`);
-  if(tel) lines.push(`TEL;TYPE=CELL:${escapeVcard(tel)}`);
-  if(mail) lines.push(`EMAIL:${escapeVcard(mail)}`);
-  if(adrRaw) lines.push(`ADR:;;${escapeVcard(adrRaw)};;;;`);
+  if (org) lines.push(`ORG:${escapeVcard(org)}`);
+  if (tel) lines.push(`TEL;TYPE=CELL:${escapeVcard(tel)}`);
+  if (mail) lines.push(`EMAIL:${escapeVcard(mail)}`);
+  if (adrRaw) lines.push(`ADR:;;${escapeVcard(adrRaw)};;;;`);
   lines.push('END:VCARD');
   return lines.join('\r\n');
 }
 
-function escapeVcard(s){ return (s||'').replace(/\r|\n/g,' ').replace(/,/g,'\\,') }
+function escapeVcard(s) { return (s || '').replace(/\r|\n/g, ' ').replace(/,/g, '\\,') }
 
-downloadBtn.addEventListener('click', ()=>{
+downloadBtn.addEventListener('click', () => {
   const v = makeVCard();
-  const blob = new Blob([v],{type:'text/vcard'});
+  const blob = new Blob([v], { type: 'text/vcard' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  const name = (fullName.value || 'contact').replace(/[^a-z0-9_-]/ig,'_');
+  const name = (fullName.value || 'contact').replace(/[^a-z0-9_-]/ig, '_');
   a.download = `${name}.vcf`;
   document.body.appendChild(a);
   a.click();
