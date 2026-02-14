@@ -12,6 +12,19 @@
 
       <div class="controls">
         <input type="file" id="fileInput" accept="image/*" />
+
+        <label for="ocrMode">OCR mode:</label>
+        <select id="ocrMode">
+          <option value="tesseract">Client (Tesseract.js)</option>
+          <option value="ocrspace">Cloud (OCR.space)</option>
+        </select>
+
+        <input
+          id="ocrApiKey"
+          placeholder="OCR.space API key (optional)"
+          style="display: none"
+        />
+
         <button id="runBtn" disabled>Run OCR</button>
         <span id="status"></span>
       </div>
@@ -25,6 +38,22 @@
         <label>Company: <input id="company" /></label>
         <label>Email: <input id="email" /></label>
         <label>Phone: <input id="phone" /></label>
+        <label
+          >Phone output format:
+          <select id="phoneFormat">
+            <option value="international">+49 (International)</option>
+            <option value="international00">0049 (International 00)</option>
+            <option value="national">National</option>
+          </select>
+        </label>
+        <label
+          >Default country (for parsing):
+          <input
+            id="defaultCountry"
+            value="DE"
+            maxlength="2"
+            style="width: 4rem"
+        /></label>
         <label>Address: <textarea id="address" rows="3"></textarea></label>
         <div class="actions">
           <button id="downloadBtn" type="button">Download vCard</button>
@@ -37,6 +66,7 @@
     </main>
 
     <script src="https://unpkg.com/tesseract.js@2.1.5/dist/tesseract.min.js"></script>
+    <script src="https://unpkg.com/libphonenumber-js@1.9.48/bundle/libphonenumber-js.min.js"></script>
     <script src="script.js"></script>
   </body>
 </html>
